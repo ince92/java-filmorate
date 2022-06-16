@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Data
 public class User {
-    private int id;
+    private long id;
     @NotBlank
     @Email
     private String email;
@@ -21,7 +21,7 @@ public class User {
     @PastOrPresent
     private LocalDate birthday;
 
-    private Set<Integer> friends;
+    private Set<Long> friends;
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
         this.id = id;

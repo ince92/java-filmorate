@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Data
 public class Film {
-    private int id;
+    private long id;
     @NotBlank
     private String name;
     @NotBlank

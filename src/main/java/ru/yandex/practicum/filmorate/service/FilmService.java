@@ -5,16 +5,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +28,7 @@ public class FilmService {
         this.filmStorage = filmStorage;
     }
 
-    public Collection<Film> findAll() {
+    public ArrayList<Film> findAll() {
         return filmStorage.findAll();
     }
 
@@ -41,10 +39,11 @@ public class FilmService {
 
     public Film update(Film film) {
         validateFilm(film);
+        findFilm(film.getId()); //вместо проверки на существование такого объекта
         return filmStorage.update(film);
     }
 
-    public void validateFilm(Film film) {
+    private void validateFilm(Film film) {
         if (film == null) {
             log.info("Фильм = null");
             throw new ValidationException("Фильм = null");
@@ -68,27 +67,27 @@ public class FilmService {
 
     }
 
-    public Film findFilm(Integer id) {
-        return filmStorage.findFilmById(id);
+    public Film findFilm(long id) {
+        return filmStorage.findFilmById(id).orElseThrow(() -> new NotFoundException("Фильм с таким id не найден!"));
     }
 
-    public Film addLike(Integer id, Integer userId) {
-        Film film = filmStorage.findFilmById(id);
+    public Film addLike(long id, long userId) {
+        Film film = findFilm(id);
         User user = userService.findUser(userId);
         Set<User> likes = film.getLikes();
         likes.add(user);
         return film;
     }
 
-    public Film deleteLike(Integer id, Integer userId) {
-        Film film = filmStorage.findFilmById(id);
+    public Film deleteLike(long id, long userId) {
+        Film film = findFilm(id);
         User user = userService.findUser(userId);
         Set<User> likes = film.getLikes();
         likes.remove(user);
         return film;
     }
 
-    public List<Film> findPopular(Integer count) {
+    public List<Film> findPopular(int count) {
         return filmStorage.findAll().stream()
                 .sorted(Comparator.comparingInt(f0 -> f0.getLikes().size() * -1))
                 .limit(count)

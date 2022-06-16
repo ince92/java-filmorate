@@ -1,17 +1,14 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private int id;
-    private final Map<Integer, Film> films = new HashMap<>();
+    private long id;
+    private final Map<Long, Film> films = new HashMap<>();
 
     public Film create(Film film) {
         films.put(++id, film);
@@ -20,22 +17,19 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public Film update(Film film) {
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("Фильм с таким id не найден! Обновление невозможно!");
-        }
         films.put(film.getId(), film);
         return film;
     }
 
-    public Collection<Film> findAll() {
-        return films.values();
+    public ArrayList<Film> findAll() {
+        return new ArrayList<>(films.values());
     }
 
-    public Film findFilmById(int id) {
+    public Optional<Film> findFilmById(long id) {
         if (!films.containsKey(id)) {
-            throw new NotFoundException("Фильм с таким id не найден!");
+            return Optional.empty();
         } else {
-            return films.get(id);
+            return Optional.of(films.get(id));
         }
     }
 }

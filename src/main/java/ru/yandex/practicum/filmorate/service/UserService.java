@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -37,10 +38,11 @@ public class UserService {
 
     public User update(User user) {
         validateUser(user);
+        findUser(user.getId()); //вместо проверки на существование такого объекта
         return userStorage.update(user);
     }
 
-    public void validateUser(User user) {
+    private void validateUser(User user) {
         if (user == null) {
             log.info("Пользователь = null");
             throw new ValidationException("Пользователь = null");
@@ -64,48 +66,49 @@ public class UserService {
 
     }
 
-    public User findUser(Integer id) {
-        return userStorage.findUserById(id);
+    public User findUser(long id) {
+        return userStorage.findUserById(id).orElseThrow(() ->
+                new NotFoundException("Пользователь с таким id не найден!"));
     }
 
-    public boolean addFriend(Integer userId, Integer friendId) {
-        User user = userStorage.findUserById(userId);
-        User friend = userStorage.findUserById(friendId);
-        Set<Integer> friends1 = user.getFriends();
+    public boolean addFriend(long userId, long friendId) {
+        User user = findUser(userId);
+        User friend = findUser(friendId);
+        Set<Long> friends1 = user.getFriends();
         friends1.add(friendId);
-        Set<Integer> friends2 = friend.getFriends();
+        Set<Long> friends2 = friend.getFriends();
         friends2.add(userId);
         return true;
     }
 
-    public boolean deleteFriend(Integer userId, Integer friendId) {
-        User user = userStorage.findUserById(userId);
-        User friend = userStorage.findUserById(friendId);
-        Set<Integer> friends1 = user.getFriends();
+    public boolean deleteFriend(long userId, long friendId) {
+        User user = findUser(userId);
+        User friend = findUser(friendId);
+        Set<Long> friends1 = user.getFriends();
         friends1.remove(friendId);
-        Set<Integer> friends2 = friend.getFriends();
+        Set<Long> friends2 = friend.getFriends();
         friends2.remove(userId);
         return true;
     }
 
-    public List<User> findFriends(Integer userId) {
-        User user = userStorage.findUserById(userId);
-        Set<Integer> friends = user.getFriends();
+    public List<User> findFriends(long userId) {
+        User user = findUser(userId);
+        Set<Long> friends = user.getFriends();
         return friends.stream()
-                .map(f0 -> userStorage.findUserById(f0))
+                .map(f0 -> findUser(f0))
                 .collect(Collectors.toList());
 
     }
 
-    public List<User> findCommonFriends(Integer userId, Integer otherId) {
-        User user = userStorage.findUserById(userId);
-        Set<Integer> friends = user.getFriends();
-        User otherUser = userStorage.findUserById(otherId);
-        Set<Integer> otherFriends = otherUser.getFriends();
-        Set<Integer> intersection = new HashSet<>(friends);
+    public List<User> findCommonFriends(long userId, long otherId) {
+        User user = findUser(userId);
+        Set<Long> friends = user.getFriends();
+        User otherUser = findUser(otherId);
+        Set<Long> otherFriends = otherUser.getFriends();
+        Set<Long> intersection = new HashSet<>(friends);
         intersection.retainAll(otherFriends);
         return intersection.stream()
-                .map(f0 -> userStorage.findUserById(f0))
+                .map(f0 -> findUser(f0))
                 .collect(Collectors.toList());
     }
 }
