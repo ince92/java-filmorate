@@ -25,8 +25,8 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    public ArrayList<Film> findAll() {
-        ArrayList<Film> films = filmService.findAll();
+    public List<Film> findAll() {
+        List<Film> films = filmService.findAll();
         log.debug("Текущее количество фильмов: {} ", films.size());
         return films;
     }

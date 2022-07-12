@@ -4,18 +4,14 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private long id;
-
     private final Map<Long, User> users = new HashMap<>();
 
-    public ArrayList<User> findAll() {
+    public List<User> findAll() {
         return new ArrayList<>(users.values());
     }
 

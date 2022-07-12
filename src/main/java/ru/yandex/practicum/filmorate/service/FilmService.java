@@ -8,12 +8,11 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikesDBStorage;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -21,14 +20,15 @@ public class FilmService {
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final FilmStorage filmStorage;
     private final UserService userService;
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    private final LikesDBStorage likesDBStorage;
+     @Autowired
+    public FilmService(FilmStorage filmStorage, UserService userService, LikesDBStorage likesDBStorage) {
         this.userService = userService;
         this.filmStorage = filmStorage;
-    }
+        this.likesDBStorage = likesDBStorage;
+     }
 
-    public ArrayList<Film> findAll() {
+    public List<Film> findAll() {
         return filmStorage.findAll();
     }
 
@@ -72,26 +72,19 @@ public class FilmService {
     }
 
     public Film addLike(long id, long userId) {
-        Film film = findFilm(id);
-        User user = userService.findUser(userId);
-        Set<User> likes = film.getLikes();
-        likes.add(user);
-        return film;
+        userService.findUser(userId);
+        likesDBStorage.addLike(id,userId);
+        return findFilm(id);
     }
 
     public Film deleteLike(long id, long userId) {
-        Film film = findFilm(id);
-        User user = userService.findUser(userId);
-        Set<User> likes = film.getLikes();
-        likes.remove(user);
-        return film;
+        userService.findUser(userId);
+        likesDBStorage.deleteLike(id,userId);
+        return findFilm(id);
     }
 
     public List<Film> findPopular(int count) {
-        return filmStorage.findAll().stream()
-                .sorted(Comparator.comparingInt(f0 -> f0.getLikes().size() * -1))
-                .limit(count)
-                .collect(Collectors.toList());
+        return likesDBStorage.findPopular(count);
     }
 
 }

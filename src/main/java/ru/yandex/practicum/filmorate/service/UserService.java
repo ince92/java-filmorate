@@ -8,10 +8,10 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendshipDBStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,13 +21,15 @@ import java.util.stream.Collectors;
 public class UserService {
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final UserStorage userStorage;
+    private final FriendshipDBStorage friendshipDBStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, FriendshipDBStorage friendshipDBStorage) {
         this.userStorage = userStorage;
+        this.friendshipDBStorage = friendshipDBStorage;
     }
 
-    public ArrayList<User> findAll() {
+    public List<User> findAll() {
         return userStorage.findAll();
     }
 
@@ -72,43 +74,29 @@ public class UserService {
     }
 
     public boolean addFriend(long userId, long friendId) {
-        User user = findUser(userId);
-        User friend = findUser(friendId);
-        Set<Long> friends1 = user.getFriends();
-        friends1.add(friendId);
-        Set<Long> friends2 = friend.getFriends();
-        friends2.add(userId);
+        findUser(userId);
+        findUser(friendId);
+        friendshipDBStorage.addFriend(userId,friendId);
         return true;
     }
 
     public boolean deleteFriend(long userId, long friendId) {
-        User user = findUser(userId);
-        User friend = findUser(friendId);
-        Set<Long> friends1 = user.getFriends();
-        friends1.remove(friendId);
-        Set<Long> friends2 = friend.getFriends();
-        friends2.remove(userId);
+        findUser(userId);
+        findUser(friendId);
+        friendshipDBStorage.deleteFriend(userId,friendId);
         return true;
     }
 
     public List<User> findFriends(long userId) {
-        User user = findUser(userId);
-        Set<Long> friends = user.getFriends();
-        return friends.stream()
-                .map(f0 -> findUser(f0))
-                .collect(Collectors.toList());
+        findUser(userId);
+        return friendshipDBStorage.findFriends(userId);
 
     }
 
     public List<User> findCommonFriends(long userId, long otherId) {
-        User user = findUser(userId);
-        Set<Long> friends = user.getFriends();
-        User otherUser = findUser(otherId);
-        Set<Long> otherFriends = otherUser.getFriends();
-        Set<Long> intersection = new HashSet<>(friends);
-        intersection.retainAll(otherFriends);
-        return intersection.stream()
-                .map(f0 -> findUser(f0))
-                .collect(Collectors.toList());
+        findUser(userId);
+        findUser(otherId);
+        return friendshipDBStorage.findCommonFriends(userId,otherId);
     }
+
 }

@@ -21,7 +21,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
-    public ArrayList<Film> findAll() {
+    public List<Film> findAll() {
         return new ArrayList<>(films.values());
     }
 
