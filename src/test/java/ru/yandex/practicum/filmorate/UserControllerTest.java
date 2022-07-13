@@ -5,9 +5,6 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.FriendshipDBStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import static org.junit.jupiter.api.Assertions.*;
 

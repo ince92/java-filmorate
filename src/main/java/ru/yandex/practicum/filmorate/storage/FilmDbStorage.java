@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
+import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.MpaStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -20,13 +23,13 @@ import java.util.*;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final GenreDBStorage genreDBStorage;
-    private final MpaDBStorage mpaDBStorage;
+    private final GenreStorage genreStorage;
+    private final MpaStorage mpaStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreDBStorage genreDBStorage, MpaDBStorage mpaDBStorage){
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreDBStorage genreStorage, MpaDBStorage mpaStorage){
         this.jdbcTemplate = jdbcTemplate;
-        this.genreDBStorage = genreDBStorage;
-        this.mpaDBStorage = mpaDBStorage;
+        this.genreStorage = genreStorage;
+        this.mpaStorage = mpaStorage;
     }
 
     public Film create(Film film) {
@@ -48,9 +51,9 @@ public class FilmDbStorage implements FilmStorage {
             //установим жанры фильма
             if (film.getGenres()!=null) {
                 for (Genre genre : film.getGenres()) {
-                    genreDBStorage.addGenreToFilm(film.getId(), genre.getId());
+                    genreStorage.addGenreToFilm(film.getId(), genre.getId());
                 }
-                film.setGenres(new HashSet<>(genreDBStorage.getGenreSetByFilm(film.getId())));//заполним из бд
+                film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
             }
            return film;
     }
@@ -67,14 +70,14 @@ public class FilmDbStorage implements FilmStorage {
                 , film.getDuration()
                 , film.getMpa().getId()
                 , film.getId());
-        genreDBStorage.deleteGenresByFilm(film.getId());
+        genreStorage.deleteGenresByFilm(film.getId());
         if (film.getGenres() != null) {
 
             for (Genre genre : film.getGenres()) {
-                genreDBStorage.addGenreToFilm(film.getId(), genre.getId());
+                genreStorage.addGenreToFilm(film.getId(), genre.getId());
             }
 
-            film.setGenres(new HashSet<>(genreDBStorage.getGenreSetByFilm(film.getId())));//заполним из бд
+            film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
         }
         return film;
     }
@@ -109,9 +112,21 @@ public class FilmDbStorage implements FilmStorage {
             releaseDate = release.toLocalDate();
         }
         long duration = rs.getLong("DURATION");
-        MPA mpa = mpaDBStorage.findMpaById(rs.getInt("MPA")).get();
-        Set<Genre> genres = new HashSet<>(genreDBStorage.getGenreSetByFilm(id));
+        MPA mpa = mpaStorage.findMpaById(rs.getInt("MPA")).get();
+        Set<Genre> genres = new HashSet<>(genreStorage.getGenreSetByFilm(id));
 
         return new Film(id,name,description,releaseDate,duration,mpa,genres);
     }
+
+    public List<Film> findPopular(int count) {
+        String sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
+                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE "+
+                "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  group by F.FILM_ID " +
+                "order by  COUNT(distinct l.USER_ID) desc limit ?";
+
+        return jdbcTemplate.query(sqlQuery,(rs, rowNum) -> makeFilm(rs),count);
+
+
+    }
+
 }

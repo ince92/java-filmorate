@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,9 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
+@Slf4j
 public class UserController {
-    // создаём логер
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
     private final UserService userService;
 
     @Autowired
@@ -43,8 +44,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{userId}")
-    public User findUser(@PathVariable("userId") Integer userId) {
-        return userService.findUser(userId);
+    public User findUserByID(@PathVariable("userId") Integer userId) {
+        return userService.findUserByID(userId);
     }
 
     @PutMapping(value = "/users/{userId}/friends/{friendId}")

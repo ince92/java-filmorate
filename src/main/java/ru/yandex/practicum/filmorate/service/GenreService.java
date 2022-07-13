@@ -4,21 +4,22 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreDBStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.GenreStorage;
 
 import java.util.List;
 @Service
 public class GenreService {
-    private final GenreDBStorage genreDBStorage;
+    private final GenreStorage genreStorage;
 
     public GenreService(GenreDBStorage genreDBStorage) {
-        this.genreDBStorage = genreDBStorage;
+        this.genreStorage = genreDBStorage;
     }
 
     public List<Genre> findAll() {
-        return genreDBStorage.findAll();
+        return genreStorage.findAll();
     }
-    public Genre findGenre(int genreId) {
-        return genreDBStorage.findGenreById(genreId).orElseThrow(() ->
+    public Genre findGenreById(int genreId) {
+        return genreStorage.findGenreById(genreId).orElseThrow(() ->
                 new NotFoundException("Жанр с таким id не найден!"));
     }
 }

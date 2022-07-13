@@ -3,17 +3,16 @@ package ru.yandex.practicum.filmorate.storage;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.storageInterface.FriendshipStorage;
 
 import java.util.List;
 @Component
-public class FriendshipDBStorage {
+public class FriendshipDBStorage implements FriendshipStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final UserDbStorage userDbStorage;
 
-    public FriendshipDBStorage(JdbcTemplate jdbcTemplate, UserDbStorage userDbStorage ){
+    public FriendshipDBStorage(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
-        this.userDbStorage = userDbStorage;
 
     }
 
@@ -41,7 +40,7 @@ public class FriendshipDBStorage {
                 ",  U.EMAIL,  U.BIRTHDAY,  U.LOGIN  "+
                 "from FRIENDSHIPS as F left join USERS U on F.FRIEND_ID = U.USER_ID where F.USER_ID = ?";
 
-       return jdbcTemplate.query (sqlQuery,(rs, rowNum) -> userDbStorage.makeUser(rs),userId);
+       return jdbcTemplate.query (sqlQuery,(rs, rowNum) -> UserDbStorage.makeUser(rs),userId);
 
 
 
@@ -54,7 +53,7 @@ public class FriendshipDBStorage {
                 "from FRIENDSHIPS as F inner join FRIENDSHIPS F2 on F.FRIEND_ID = F2.FRIEND_ID left join USERS U on "+
                 "F.FRIEND_ID = U.USER_ID where F.USER_ID = ? and F2.USER_ID = ?";
 
-        return jdbcTemplate.query (sqlQuery,(rs, rowNum) -> userDbStorage.makeUser(rs),userId,otherId);
+        return jdbcTemplate.query (sqlQuery,(rs, rowNum) -> UserDbStorage.makeUser(rs),userId,otherId);
 
 
     }

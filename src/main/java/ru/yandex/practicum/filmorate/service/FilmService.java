@@ -8,8 +8,9 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.LikesDBStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.LikesStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -19,13 +20,13 @@ public class FilmService {
 
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final FilmStorage filmStorage;
-    private final UserService userService;
-    private final LikesDBStorage likesDBStorage;
+    private final UserStorage userStorage;
+    private final LikesStorage likesStorage;
      @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService, LikesDBStorage likesDBStorage) {
-        this.userService = userService;
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesDBStorage) {
+        this.userStorage = userStorage;
         this.filmStorage = filmStorage;
-        this.likesDBStorage = likesDBStorage;
+        this.likesStorage = likesDBStorage;
      }
 
     public List<Film> findAll() {
@@ -39,7 +40,7 @@ public class FilmService {
 
     public Film update(Film film) {
         validateFilm(film);
-        findFilm(film.getId()); //вместо проверки на существование такого объекта
+        findFilmById(film.getId()); //вместо проверки на существование такого объекта
         return filmStorage.update(film);
     }
 
@@ -67,24 +68,30 @@ public class FilmService {
 
     }
 
-    public Film findFilm(long id) {
+    public Film findFilmById(long id) {
         return filmStorage.findFilmById(id).orElseThrow(() -> new NotFoundException("Фильм с таким id не найден!"));
     }
 
     public Film addLike(long id, long userId) {
-        userService.findUser(userId);
-        likesDBStorage.addLike(id,userId);
-        return findFilm(id);
+        checkUser(userId);
+        likesStorage.addLike(id,userId);
+        return findFilmById(id);
     }
 
     public Film deleteLike(long id, long userId) {
-        userService.findUser(userId);
-        likesDBStorage.deleteLike(id,userId);
-        return findFilm(id);
+        checkUser(userId);
+        likesStorage.deleteLike(id,userId);
+        return findFilmById(id);
     }
 
     public List<Film> findPopular(int count) {
-        return likesDBStorage.findPopular(count);
+        return filmStorage.findPopular(count);
+    }
+
+    private void checkUser( long userId){
+        userStorage.findUserById(userId).orElseThrow(() ->
+                new NotFoundException("Пользователь с таким id не найден!"));
+
     }
 
 }

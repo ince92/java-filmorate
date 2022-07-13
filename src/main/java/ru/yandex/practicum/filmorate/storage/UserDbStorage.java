@@ -6,6 +6,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.storageInterface.UserStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 @Component
 @Primary
-public class UserDbStorage implements UserStorage{
+public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -74,7 +75,7 @@ public class UserDbStorage implements UserStorage{
         }
     }
 
-    public User makeUser(ResultSet rs) throws SQLException {
+    public static User makeUser(ResultSet rs) throws SQLException {
 
         long id = rs.getLong("USER_ID");
         String name = rs.getString("USER_NAME");
