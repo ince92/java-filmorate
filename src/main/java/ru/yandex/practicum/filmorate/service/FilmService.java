@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -16,17 +14,17 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@Slf4j
 public class FilmService {
 
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final LikesStorage likesStorage;
      @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesDBStorage) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesStorage) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
-        this.likesStorage = likesDBStorage;
+        this.likesStorage = likesStorage;
      }
 
     public List<Film> findAll() {
@@ -88,7 +86,7 @@ public class FilmService {
         return filmStorage.findPopular(count);
     }
 
-    private void checkUser( long userId){
+    private void checkUser(long userId){
         userStorage.findUserById(userId).orElseThrow(() ->
                 new NotFoundException("Пользователь с таким id не найден!"));
 

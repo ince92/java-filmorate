@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MPA;
-import ru.yandex.practicum.filmorate.storage.MpaDBStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.MpaStorage;
 
 import java.util.List;
@@ -11,8 +10,8 @@ import java.util.List;
 public class MpaService {
    private final MpaStorage mpaStorage;
 
-    public MpaService(MpaDBStorage mpaDBStorage) {
-        this.mpaStorage = mpaDBStorage;
+    public MpaService(MpaStorage mpaStorage) {
+        this.mpaStorage = mpaStorage;
     }
 
     public List<MPA> findAll() {

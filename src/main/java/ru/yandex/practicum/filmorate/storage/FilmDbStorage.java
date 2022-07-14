@@ -26,7 +26,7 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreDBStorage genreStorage, MpaDBStorage mpaStorage){
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage, MpaStorage mpaStorage){
         this.jdbcTemplate = jdbcTemplate;
         this.genreStorage = genreStorage;
         this.mpaStorage = mpaStorage;
