@@ -15,7 +15,7 @@ import java.util.*;
 @Validated
 @Slf4j
 public class FilmController {
-      private final FilmService filmService;
+      private final FilmService filmService;//test
 
     @Autowired
     public FilmController(FilmService filmService) {
