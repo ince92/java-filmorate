@@ -1,34 +1,33 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.LikesStorage;
+import ru.yandex.practicum.filmorate.storage.storageInterface.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FilmService {
 
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final FilmStorage filmStorage;
-    private final UserService userService;
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.userService = userService;
+    private final UserStorage userStorage;
+    private final LikesStorage likesStorage;
+     @Autowired
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesStorage) {
+        this.userStorage = userStorage;
         this.filmStorage = filmStorage;
-    }
+        this.likesStorage = likesStorage;
+     }
 
-    public ArrayList<Film> findAll() {
+    public List<Film> findAll() {
         return filmStorage.findAll();
     }
 
@@ -39,7 +38,7 @@ public class FilmService {
 
     public Film update(Film film) {
         validateFilm(film);
-        findFilm(film.getId()); //вместо проверки на существование такого объекта
+        findFilmById(film.getId()); //вместо проверки на существование такого объекта
         return filmStorage.update(film);
     }
 
@@ -67,31 +66,30 @@ public class FilmService {
 
     }
 
-    public Film findFilm(long id) {
+    public Film findFilmById(long id) {
         return filmStorage.findFilmById(id).orElseThrow(() -> new NotFoundException("Фильм с таким id не найден!"));
     }
 
     public Film addLike(long id, long userId) {
-        Film film = findFilm(id);
-        User user = userService.findUser(userId);
-        Set<User> likes = film.getLikes();
-        likes.add(user);
-        return film;
+        checkUser(userId);
+        likesStorage.addLike(id,userId);
+        return findFilmById(id);
     }
 
     public Film deleteLike(long id, long userId) {
-        Film film = findFilm(id);
-        User user = userService.findUser(userId);
-        Set<User> likes = film.getLikes();
-        likes.remove(user);
-        return film;
+        checkUser(userId);
+        likesStorage.deleteLike(id,userId);
+        return findFilmById(id);
     }
 
     public List<Film> findPopular(int count) {
-        return filmStorage.findAll().stream()
-                .sorted(Comparator.comparingInt(f0 -> f0.getLikes().size() * -1))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.findPopular(count);
+    }
+
+    private void checkUser(long userId){
+        userStorage.findUserById(userId).orElseThrow(() ->
+                new NotFoundException("Пользователь с таким id не найден!"));
+
     }
 
 }

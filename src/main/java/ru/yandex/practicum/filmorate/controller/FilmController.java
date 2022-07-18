@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +13,9 @@ import java.util.*;
 
 @RestController
 @Validated
+@Slf4j
 public class FilmController {
-
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private final FilmService filmService;
+      private final FilmService filmService;
 
     @Autowired
     public FilmController(FilmService filmService) {
@@ -25,8 +23,8 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    public ArrayList<Film> findAll() {
-        ArrayList<Film> films = filmService.findAll();
+    public List<Film> findAll() {
+        List<Film> films = filmService.findAll();
         log.debug("Текущее количество фильмов: {} ", films.size());
         return films;
     }
@@ -46,8 +44,8 @@ public class FilmController {
     }
 
     @GetMapping("/films/{filmId}")
-    public Film findFilm(@PathVariable("filmId") long filmId) {
-        return filmService.findFilm(filmId);
+    public Film findFilmById(@PathVariable("filmId") long filmId) {
+        return filmService.findFilmById(filmId);
     }
 
     @PutMapping(value = "/films/{id}/like/{userId}")
