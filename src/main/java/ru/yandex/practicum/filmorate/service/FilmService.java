@@ -20,7 +20,6 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final LikesStorage likesStorage;
-
      @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesStorage) {
         this.userStorage = userStorage;
@@ -93,6 +92,12 @@ public class FilmService {
 
     }
 
+    public void deleteFilm(long id) {
+        var removed = filmStorage.remove(id);
+        if (!removed) {
+            throw new NotFoundException("Фильм не найден");
+        }
+    }
     public List<Film> findDirectorsFilms(long directorId, String sortBy) {
          return filmStorage.findDirectorsFilms(directorId, sortBy);
     }

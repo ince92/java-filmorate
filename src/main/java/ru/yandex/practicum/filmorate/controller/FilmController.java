@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -44,6 +45,11 @@ public class FilmController {
         Film updatedFilm = filmService.update(film);
         log.info("Обновлен фильм - {}", updatedFilm.getName());
         return updatedFilm;
+    }
+
+    @DeleteMapping("/films/{id}")
+    public void deleteFilm(@PathVariable("id") long id) {
+        filmService.deleteFilm(id);
     }
 
     @GetMapping("/films/{filmId}")
