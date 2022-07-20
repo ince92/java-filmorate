@@ -20,6 +20,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final LikesStorage likesStorage;
+
      @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesStorage) {
         this.userStorage = userStorage;
@@ -90,6 +91,10 @@ public class FilmService {
         userStorage.findUserById(userId).orElseThrow(() ->
                 new NotFoundException("Пользователь с таким id не найден!"));
 
+    }
+
+    public List<Film> findDirectorsFilms(long directorId, String sortBy) {
+         return filmStorage.findDirectorsFilms(directorId, sortBy);
     }
 
 }
