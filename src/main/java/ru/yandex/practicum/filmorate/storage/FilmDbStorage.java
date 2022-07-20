@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
+
 @Component
 @Primary
 public class FilmDbStorage implements FilmStorage {
@@ -26,7 +27,7 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage, MpaStorage mpaStorage){
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage, MpaStorage mpaStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.genreStorage = genreStorage;
         this.mpaStorage = mpaStorage;
@@ -47,15 +48,15 @@ public class FilmDbStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
 
-            film.setId(keyHolder.getKey().longValue());
-            //установим жанры фильма
-            if (film.getGenres()!=null) {
-                for (Genre genre : film.getGenres()) {
-                    genreStorage.addGenreToFilm(film.getId(), genre.getId());
-                }
-                film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
+        film.setId(keyHolder.getKey().longValue());
+        //установим жанры фильма
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                genreStorage.addGenreToFilm(film.getId(), genre.getId());
             }
-           return film;
+            film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
+        }
+        return film;
     }
 
     public Film update(Film film) {
@@ -87,18 +88,19 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
     }
 
-    public Optional<Film> findFilmById(long id)  {
+    public Optional<Film> findFilmById(long id) {
         String sql = "select * from FILMS where FILM_ID = ?";
 
-        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs),id);
-        if (films.size()==0){
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), id);
+        if (films.size() == 0) {
             return Optional.empty();
-        }else{
+        } else {
             return Optional.of(films.get(0));
         }
 
 
     }
+
     public Film makeFilm(ResultSet rs) throws SQLException {
 
         long id = rs.getLong("FILM_ID");
@@ -106,27 +108,63 @@ public class FilmDbStorage implements FilmStorage {
         String name = rs.getString("FILM_NAME");
         Date release = rs.getDate("RELEASE_DATE");
         LocalDate releaseDate;
-        if (release == null){
+        if (release == null) {
             releaseDate = null;
-        }else{
+        } else {
             releaseDate = release.toLocalDate();
         }
         long duration = rs.getLong("DURATION");
         MPA mpa = mpaStorage.findMpaById(rs.getInt("MPA")).get();
         Set<Genre> genres = new HashSet<>(genreStorage.getGenreSetByFilm(id));
 
-        return new Film(id,name,description,releaseDate,duration,mpa,genres);
+        return new Film(id, name, description, releaseDate, duration, mpa, genres);
     }
 
     public List<Film> findPopular(int count) {
         String sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
-                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE "+
+                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE " +
                 "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  group by F.FILM_ID " +
                 "order by  COUNT(distinct l.USER_ID) desc limit ?";
 
-        return jdbcTemplate.query(sqlQuery,(rs, rowNum) -> makeFilm(rs),count);
-
-
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), count);
     }
 
+    @Override
+    public List<Film> getMostPopularFilms(long count, long genreId, long year) {
+        String sqlQuery;
+        if ((year == 0) && (genreId == 0)) {
+            return findPopular((int)(count));
+        }
+        if (year == 0) {
+            sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
+                    ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA" +
+                    ", f.RELEASE_DATE as RELEASE_DATE " +
+                    "from FILMS F  " +
+                    "left join LIKES l on F.FILM_ID = l.FILM_ID " +
+                    "left join FILM_GENRES G on F.FILM_ID = G.FILM_ID " +
+                    "where GENRE_ID = ?" +
+                    "group by F.FILM_ID " +
+                    "order by  COUNT(distinct l.USER_ID) desc limit ?";
+            return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), genreId, count);
+
+        }
+        if (genreId == 0) {
+            sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
+                    ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA" +
+                    ", f.RELEASE_DATE as RELEASE_DATE " +
+                    "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  " +
+                    "where EXTRACT(YEAR FROM (f.RELEASE_DATE)) = ?" +
+                    "group by F.FILM_ID " +
+                    "order by  COUNT(distinct l.USER_ID) desc limit ?";
+            return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), year, count);
+        }
+        sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
+                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE " +
+                "from (FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID) " +
+                "left join FILM_GENRES G on F.FILM_ID = G.FILM_ID " +
+                "where G.GENRE_ID = ? AND EXTRACT(YEAR FROM (RELEASE_DATE)) = ?" +
+                "group by F.FILM_ID " +
+                "order by  COUNT(distinct l.USER_ID) desc limit ?";
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), genreId, year, count);
+    }
 }

@@ -92,4 +92,8 @@ public class FilmService {
 
     }
 
+    public List<Film> getMostPopularFilms (long count, long genreId, long year) {
+         return filmStorage.getMostPopularFilms(count,genreId,year);
+    }
+
 }

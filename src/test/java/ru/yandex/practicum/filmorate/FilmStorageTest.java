@@ -108,4 +108,14 @@ public class FilmStorageTest {
 
     }
 
+    @Test
+    public void getMostPopularFilm() {
+        Film film = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
+                7200L, new MPA(1),new HashSet<>());
+        filmStorage.create(film);
+        Film film1 = new Film(2L, "Film2", "Action2", LocalDate.of(2000, 1, 1),
+                7200L, new MPA(1),new HashSet<>());
+        filmStorage.create(film1);
+        assertEquals(filmService.getMostPopularFilms(10, 0, 2000).size(), 1);
+    }
 }
