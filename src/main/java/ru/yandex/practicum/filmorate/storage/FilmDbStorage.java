@@ -5,9 +5,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
+import ru.yandex.practicum.filmorate.storage.storageInterface.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.MpaStorage;
@@ -26,14 +28,19 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage, MpaStorage mpaStorage){
+    private final DirectorStorage directorStorage;
+
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage, MpaStorage mpaStorage,
+                         DirectorStorage directorStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.genreStorage = genreStorage;
         this.mpaStorage = mpaStorage;
+        this.directorStorage = directorStorage;
     }
 
     public Film create(Film film) {
-        String sqlQuery = "insert into FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE,DURATION,MPA) values (?, ?, ?, ?,?)";
+        String sqlQuery = "insert into FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE,DURATION,MPA) " +
+                "values (?, ?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -55,6 +62,14 @@ public class FilmDbStorage implements FilmStorage {
                 }
                 film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
             }
+
+        //добавим режиссёров
+        if (film.getDirectors()!=null) {
+            for (Director director : film.getDirectors()) {
+                directorStorage.addDirectorToFilm(film.getId(), director.getId());
+            }
+            film.setDirectors(new HashSet<>(directorStorage.getFilmDirectors(film.getId())));
+        }
            return film;
     }
 
@@ -78,6 +93,14 @@ public class FilmDbStorage implements FilmStorage {
             }
 
             film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
+        }
+
+        directorStorage.deleteDirectorsByFilm(film.getId());
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                directorStorage.addDirectorToFilm(film.getId(), director.getId());
+            }
+            film.setDirectors(new HashSet<>(directorStorage.getFilmDirectors(film.getId())));
         }
         return film;
     }
@@ -121,8 +144,8 @@ public class FilmDbStorage implements FilmStorage {
         long duration = rs.getLong("DURATION");
         MPA mpa = mpaStorage.findMpaById(rs.getInt("MPA")).get();
         Set<Genre> genres = new HashSet<>(genreStorage.getGenreSetByFilm(id));
-
-        return new Film(id,name,description,releaseDate,duration,mpa,genres);
+        Set<Director> directors = new HashSet<>(directorStorage.getFilmDirectors(id));
+        return new Film(id,name,description,releaseDate,duration,mpa,genres, directors);
     }
 
     public List<Film> findPopular(int count) {
@@ -133,6 +156,25 @@ public class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.query(sqlQuery,(rs, rowNum) -> makeFilm(rs),count);
 
+
+    }
+
+    public List<Film> findDirectorsFilms(long directorId, String sortBy) {
+        String sqlSort = "";
+        if(sortBy.equals("year")) {
+            sqlSort = "order by F.RELEASE_DATE ";
+        } else if (sortBy.equals("likes")) {
+            sqlSort = "order by COUNT(L.USER_ID) desc";
+        }
+        String sqlQuery = "select F.* FROM FILMS F " +
+                "left join LIKES L on F.FILM_ID = L.FILM_ID " +
+                "left join FILM_DIRECTORS FD on F.FILM_ID = FD.FILM_ID " +
+                "where FD.DIRECTOR_ID in (" +
+                "    select DIRECTOR_ID from DIRECTORS D " +
+                "    where D.DIRECTOR_ID = ?) " +
+                "group by F.FILM_ID " + sqlSort;
+
+        return jdbcTemplate.query(sqlQuery,(rs, rowNum) -> makeFilm(rs),directorId);
 
     }
 

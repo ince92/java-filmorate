@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
@@ -17,10 +18,12 @@ import java.util.*;
 @Slf4j
 public class FilmController {
       private final FilmService filmService;
+      private final DirectorService directorService;
 
     @Autowired
-    public FilmController(FilmService filmService) {
+    public FilmController(FilmService filmService, DirectorService directorService) {
         this.filmService = filmService;
+        this.directorService = directorService;
     }
 
     @GetMapping("/films")
@@ -67,6 +70,13 @@ public class FilmController {
     @GetMapping("/films/popular")
     public List<Film> findPopular(@Positive @RequestParam(defaultValue = "10", required = false) int count) {
         return filmService.findPopular(count);
+    }
+
+    @GetMapping("/films/director/{directorId}")
+    public List<Film> getDirectorsFilms(@PathVariable("directorId") long directorId,
+                                        @RequestParam(value = "sortBy", required = false) String sortBy) {
+        directorService.findDirectorById(directorId);
+        return filmService.findDirectorsFilms(directorId, sortBy);
     }
 }
 

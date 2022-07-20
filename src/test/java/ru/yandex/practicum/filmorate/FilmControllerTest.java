@@ -29,14 +29,15 @@ public class FilmControllerTest {
     @Test
     void createFilmTest() {
         Film film = new Film(1, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L,null,new HashSet<>());
+                7200L,null,new HashSet<>(), null);
         Film film1 = filmController.create(film);
         assertEquals(film, film1, "Фильмы не создаются корректно");
     }
 
     @Test
     void createEmptyNameFilmTest() {
-        Film film = new Film(1, "", "Action", LocalDate.of(1990, 1, 1), 7200L,null,new HashSet<>());
+        Film film = new Film(1, "", "Action", LocalDate.of(1990, 1, 1), 7200L,null,new HashSet<>(),
+                null);
         assertThrows(ValidationException.class, () -> filmController.create(film), "Создан фильм " +
                 "с пустым названием");
     }
@@ -51,7 +52,8 @@ public class FilmControllerTest {
                 "dlfkvmdlkfmvlkdfmvlkdmfvlkdmfvlkdmffvlkmdfflvkvmdf" +
                 "dflkmvlkdfmvlkdmfvlkdmfvlmdfflvkmdfflkvmdflkvvmdlkfvm" +
                 "dlfkvmldfmvlkdmfvlkmdfvlkvmdfvlkkmdflkvvmdlkfvmvdlkfmvvdlfmvldkfmv" +
-                "", LocalDate.of(1990, 1, 1), 7200L,null,new HashSet<>());
+                "", LocalDate.of(1990, 1, 1), 7200L,null,new HashSet<>(),
+                null);
         assertThrows(ValidationException.class, () -> filmController.create(film), "Создан фильм " +
                 "с очень длинным описанием");
     }
@@ -59,14 +61,15 @@ public class FilmControllerTest {
     @Test
     void createIncorrectDateFilmTest() {
         Film film = new Film(1, "", "Action", LocalDate.of(1985, 12, 27),
-                7200L,null, new HashSet<>());
+                7200L,null, new HashSet<>(), null);
         assertThrows(ValidationException.class, () -> filmController.create(film), "Создан фильм " +
                 "с некорректной датой выпуска");
     }
 
     @Test
     void createNegativeDurationFilmTest() {
-        Film film = new Film(1, "", "Action", LocalDate.of(1985, 12, 28), 7200L,null,new HashSet<>());
+        Film film = new Film(1, "", "Action", LocalDate.of(1985, 12, 28), 7200L,null,
+                new HashSet<>(), null);
         assertThrows(ValidationException.class, () -> filmController.create(film), "Создан фильм " +
                 "с отрицательной продолжительностью");
     }

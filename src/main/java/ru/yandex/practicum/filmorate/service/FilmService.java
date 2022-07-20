@@ -98,4 +98,8 @@ public class FilmService {
             throw new NotFoundException("Фильм не найден");
         }
     }
+
+    public List<Film> findDirectorsFilms(long directorId, String sortBy) {
+         return filmStorage.findDirectorsFilms(directorId, sortBy);
+    }
 }

@@ -33,7 +33,7 @@ public class FilmStorageTest {
     public void testFindFilmById() {
 
         Film film = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
         Film film1 = filmStorage.create(film);
 
 
@@ -55,7 +55,7 @@ public class FilmStorageTest {
     @Test
     public void testCreateFilm() {
         Film film = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
         Film film1 = filmStorage.create(film);
 
 
@@ -67,7 +67,7 @@ public class FilmStorageTest {
     @Test
     public void testUpdateFilm() {
         Film film = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
         filmStorage.create(film);
         film.setName("Film updated");
         Film film1 = filmStorage.update(film);
@@ -80,10 +80,10 @@ public class FilmStorageTest {
     @Test
     public void testIncorrectIdUpdateFilm() {
         Film film = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
         filmStorage.create(film);
         Film film1 = new Film(2L, "Film2", "Action2", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
 
 
         assertThrows(NotFoundException.class,  () -> filmService.update(film1), "Фильм обновляется некорректно");
@@ -92,10 +92,10 @@ public class FilmStorageTest {
     @Test
     public void testFindAllFilm() {
         Film film = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
         filmStorage.create(film);
         Film film1 = new Film(2L, "Film2", "Action2", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
         filmStorage.create(film1);
 
         assertTrue(filmService.findAll().size()==2, "Метод возвращает неправильный список");
@@ -111,10 +111,11 @@ public class FilmStorageTest {
     @Test
     void testFilmDeletion() {
         Film film2 = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
 
         Film film1 = new Film(2L, "Film", "Action", LocalDate.of(1990, 1, 1),
-                7200L, new MPA(1),new HashSet<>());
+                7200L, new MPA(1),new HashSet<>(), null);
+
 
         filmStorage.create(film1);
         filmStorage.create(film2);
