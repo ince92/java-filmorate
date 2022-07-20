@@ -158,6 +158,26 @@ public class FilmDbStorage implements FilmStorage {
 
 
     }
+    public List<Film> findRecommendations(long userId) {
+        String sqlQuery = "with result as(\n" +
+                "select F.USER_ID, count(F.USER_ID) AS USER_COUNT,\n" +
+                "max(count(F.USER_ID)) over (partition by L.USER_ID) as MAX_COUNT\n" +
+                "from LIKES AS L\n" +
+                "left join LIKES F on F.FILM_ID = L.FILM_ID\n" +
+                "WHERE L.USER_ID = ? AND F.USER_ID <> ?\n" +
+                "GROUP BY F.USER_ID)\n" +
+                "select *\n" +
+                "from FILMS\n" +
+                "where FILM_ID in(\n" +
+                "select FILM_ID\n" +
+                "from LIKES\n" +
+                "where USER_ID in (select USER_ID from result where MAX_COUNT = USER_COUNT)\n" +
+                "and FILM_ID not in(select FILM_ID from Likes where USER_ID = ?))";
+
+        return jdbcTemplate.query(sqlQuery,(rs, rowNum) -> makeFilm(rs),userId,userId,userId);
+
+
+    }
 
     public List<Film> findDirectorsFilms(long directorId, String sortBy) {
         String sqlSort = "";
