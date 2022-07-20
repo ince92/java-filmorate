@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.EventFeedsDbStorage;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -15,10 +17,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final EventFeedsDbStorage eventFeedsDbStorage;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, EventFeedsDbStorage eventFeedsDbStorage) {
         this.userService = userService;
+        this.eventFeedsDbStorage = eventFeedsDbStorage;
     }
 
     @GetMapping("/users")
@@ -78,4 +82,10 @@ public class UserController {
         return userService.findRecommendations(userId);
     }
 
+
+    @GetMapping("/users/{userId}/feed")
+    public List<Event> showUserHistory(@PathVariable("userId") Integer userId) {
+        log.debug("Запрошена история событий пользователя с ID: " + userId);
+        return eventFeedsDbStorage.showUserHistory(userId);
+    }
 }
