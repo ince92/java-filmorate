@@ -109,4 +109,24 @@ public class USerStorageTest {
         assertTrue(userService.findAll().size()==0, "Метод возвращает неправильный список");
 
     }
+
+    @Test
+    void testUserDeletion() {
+        User user1 = new User(1, "emai@l", "login", "name", LocalDate.of(1992, 9,
+                4));
+        userStorage.create(user1);
+
+        User user2 = new User(2, "emai@l1", "login1", "name1", LocalDate.of(1992, 9,
+                4));
+        userStorage.create(user2);
+
+        assertEquals(2, userStorage.findAll().size());
+
+        userStorage.remove(1L);
+
+        var users = userStorage.findAll();
+        assertEquals(1, users.size());
+
+        assertEquals(2L, users.get(0).getId());
+    }
 }

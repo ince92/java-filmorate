@@ -108,4 +108,24 @@ public class FilmStorageTest {
 
     }
 
+    @Test
+    void testFilmDeletion() {
+        Film film2 = new Film(1L, "Film", "Action", LocalDate.of(1990, 1, 1),
+                7200L, new MPA(1),new HashSet<>());
+
+        Film film1 = new Film(2L, "Film", "Action", LocalDate.of(1990, 1, 1),
+                7200L, new MPA(1),new HashSet<>());
+
+        filmStorage.create(film1);
+        filmStorage.create(film2);
+
+        assertEquals(2, filmStorage.findAll().size());
+
+        filmStorage.remove(1L);
+
+        var films = filmStorage.findAll();
+        assertEquals(1, films.size());
+
+        assertEquals(2L, films.get(0).getId());
+    }
 }
