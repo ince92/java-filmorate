@@ -8,7 +8,9 @@ import java.util.Optional;
 public interface FilmStorage {
     Film create(Film film);
     Film update(Film film);
+    boolean remove(long id);
     List<Film> findAll();
     Optional<Film> findFilmById(long id);
     List<Film> findPopular(int count);
+    List<Film> findDirectorsFilms(long directorId, String sortBy);
 }

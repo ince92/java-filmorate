@@ -39,6 +39,13 @@ public class UserService {
         return userStorage.update(user);
     }
 
+    public void deleteUser(long id) {
+        var removed = userStorage.remove(id);
+        if (!removed) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+    }
+
     private void validateUser(User user) {
         if (user == null) {
             log.info("Пользователь = null");

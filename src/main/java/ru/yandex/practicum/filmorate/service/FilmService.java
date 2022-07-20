@@ -92,4 +92,14 @@ public class FilmService {
 
     }
 
+    public void deleteFilm(long id) {
+        var removed = filmStorage.remove(id);
+        if (!removed) {
+            throw new NotFoundException("Фильм не найден");
+        }
+    }
+
+    public List<Film> findDirectorsFilms(long directorId, String sortBy) {
+         return filmStorage.findDirectorsFilms(directorId, sortBy);
+    }
 }
