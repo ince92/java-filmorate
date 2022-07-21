@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.storageInterface.UserStorage;
 
@@ -98,5 +99,4 @@ public class UserDbStorage implements UserStorage {
 
         return new User(id,email,login,name,birthday);
     }
-
 }
