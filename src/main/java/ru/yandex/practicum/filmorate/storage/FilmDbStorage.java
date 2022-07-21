@@ -5,11 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
-import ru.yandex.practicum.filmorate.storage.storageInterface.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.MpaStorage;
@@ -35,7 +33,6 @@ public class FilmDbStorage implements FilmStorage {
         this.jdbcTemplate = jdbcTemplate;
         this.genreStorage = genreStorage;
         this.mpaStorage = mpaStorage;
-        this.directorStorage = directorStorage;
     }
 
     public Film create(Film film) {
@@ -94,14 +91,6 @@ public class FilmDbStorage implements FilmStorage {
 
             film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
         }
-
-        directorStorage.deleteDirectorsByFilm(film.getId());
-        if (film.getDirectors() != null) {
-            for (Director director : film.getDirectors()) {
-                directorStorage.addDirectorToFilm(film.getId(), director.getId());
-            }
-            film.setDirectors(new HashSet<>(directorStorage.getFilmDirectors(film.getId())));
-        }
         return film;
     }
 
@@ -117,13 +106,13 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
     }
 
-    public Optional<Film> findFilmById(long id)  {
+    public Optional<Film> findFilmById(long id) {
         String sql = "select * from FILMS where FILM_ID = ?";
 
-        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs),id);
-        if (films.size()==0){
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), id);
+        if (films.size() == 0) {
             return Optional.empty();
-        }else{
+        } else {
             return Optional.of(films.get(0));
         }
 
@@ -136,9 +125,9 @@ public class FilmDbStorage implements FilmStorage {
         String name = rs.getString("FILM_NAME");
         Date release = rs.getDate("RELEASE_DATE");
         LocalDate releaseDate;
-        if (release == null){
+        if (release == null) {
             releaseDate = null;
-        }else{
+        } else {
             releaseDate = release.toLocalDate();
         }
         long duration = rs.getLong("DURATION");
@@ -150,13 +139,22 @@ public class FilmDbStorage implements FilmStorage {
 
     public List<Film> findPopular(int count) {
         String sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
-                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE "+
+                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE " +
                 "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  group by F.FILM_ID " +
                 "order by  COUNT(distinct l.USER_ID) desc limit ?";
 
-        return jdbcTemplate.query(sqlQuery,(rs, rowNum) -> makeFilm(rs),count);
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), count);
+    }
 
-
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        String sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
+                ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE " +
+                "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  " +
+                "left join LIKES fr on F.FILM_ID = fr.FILM_ID " +
+                "where l.USER_ID = ? and  fr.USER_ID = ?" +
+                "group by F.FILM_ID " +
+                "order by  COUNT(distinct l.USER_ID) desc";
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), userId, friendId);
     }
     public List<Film> findRecommendations(long userId) {
         String sqlQuery = "with result as(\n" +
