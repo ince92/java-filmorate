@@ -15,7 +15,7 @@ import java.util.*;
 @Validated
 @Slf4j
 public class FilmController {
-      private final FilmService filmService;
+    private final FilmService filmService;
 
     @Autowired
     public FilmController(FilmService filmService) {
@@ -61,6 +61,12 @@ public class FilmController {
     @GetMapping("/films/popular")
     public List<Film> findPopular(@Positive @RequestParam(defaultValue = "10", required = false) int count) {
         return filmService.findPopular(count);
+    }
+
+    @GetMapping("/films/common")
+    public List<Film> findPopular(@Positive @RequestParam(name = "userId") long userId
+            , @RequestParam(name = "friendId") long friendId) {
+        return filmService.findCommonFilms(userId, friendId);
     }
 }
 

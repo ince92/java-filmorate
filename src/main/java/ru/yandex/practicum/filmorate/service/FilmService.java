@@ -86,6 +86,10 @@ public class FilmService {
         return filmStorage.findPopular(count);
     }
 
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        return filmStorage.findCommonFilms(userId, friendId);
+    }
+
     private void checkUser(long userId){
         userStorage.findUserById(userId).orElseThrow(() ->
                 new NotFoundException("Пользователь с таким id не найден!"));
