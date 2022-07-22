@@ -10,7 +10,7 @@ import ru.yandex.practicum.filmorate.model.forEvent.Operations;
 import ru.yandex.practicum.filmorate.storage.storageInterface.EventFeedsStorage;
 
 import java.sql.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -22,24 +22,22 @@ public class EventFeedsDbStorage<T> implements EventFeedsStorage {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Event addEvent(long userId, EventTypes eventType, Operations operation, long entityId) {
-        String sqlQuery = "insert into EVENT_FEEDS (TIMESTAMP, USER_ID, EVENT_TYPE,OPERATION,ENTITY_ID)" +
+    public void addEvent(long userId, EventTypes eventType, Operations operation, long entityId) {
+        String sqlQuery = "insert into EVENT_FEEDS (TIMESTAMP, USER_ID, EVENT_TYPE, OPERATION, ENTITY_ID)" +
                 " values (?, ?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
+        long date = Instant.now().toEpochMilli();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"EVENT_ID"});
-            stmt.setTimestamp(1, timestamp);
+            stmt.setLong(1, date);
             stmt.setLong(2, userId);
             stmt.setString(3, eventType.toString());
             stmt.setString(4, operation.toString());
             stmt.setLong(5, entityId);
             return stmt;
         }, keyHolder);
-        return new Event(timestamp, userId, eventType, operation, keyHolder.getKey().longValue()
-                , entityId);
     }
 
     public List<Event> showUserHistory(long userId) {
@@ -49,12 +47,12 @@ public class EventFeedsDbStorage<T> implements EventFeedsStorage {
 
     public Event makeEvent(ResultSet rs) throws SQLException {
         return new Event(
-                rs.getTimestamp("TIMESTAMP"),
+                rs.getLong("EVENT_ID"),
                 rs.getLong("USER_ID"),
+                rs.getLong("ENTITY_ID"),
                 EventTypes.valueOf(rs.getString("EVENT_TYPE")),
                 Operations.valueOf(rs.getString("OPERATION")),
-                rs.getLong("EVENT_ID"),
-                rs.getLong("ENTITY_ID")
-        );
+                rs.getLong("TIMESTAMP")
+                );
     }
 }

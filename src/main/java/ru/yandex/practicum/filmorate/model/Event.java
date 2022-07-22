@@ -12,11 +12,11 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event {
-    private Timestamp timestamp;
-    private Long userId;
+    private long eventId;
+    private long userId;
+    private long entityId;
     private EventTypes eventType;
     private Operations operation;
-    private Long evenId;
-    private Long entityId;
+    private long timestamp;
 }
 
