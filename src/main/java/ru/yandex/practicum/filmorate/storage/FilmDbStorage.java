@@ -5,9 +5,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MPA;
+import ru.yandex.practicum.filmorate.storage.storageInterface.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.MpaStorage;
@@ -33,6 +35,7 @@ public class FilmDbStorage implements FilmStorage {
         this.jdbcTemplate = jdbcTemplate;
         this.genreStorage = genreStorage;
         this.mpaStorage = mpaStorage;
+        this.directorStorage = directorStorage;
     }
 
     public Film create(Film film) {
@@ -115,8 +118,6 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             return Optional.of(films.get(0));
         }
-
-
     }
     public Film makeFilm(ResultSet rs) throws SQLException {
 
@@ -151,7 +152,7 @@ public class FilmDbStorage implements FilmStorage {
                 ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE " +
                 "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  " +
                 "left join LIKES fr on F.FILM_ID = fr.FILM_ID " +
-                "where l.USER_ID = ? and  fr.USER_ID = ?" +
+                "where l.USER_ID = ? and fr.USER_ID = ?" +
                 "group by F.FILM_ID " +
                 "order by  COUNT(distinct l.USER_ID) desc";
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), userId, friendId);
