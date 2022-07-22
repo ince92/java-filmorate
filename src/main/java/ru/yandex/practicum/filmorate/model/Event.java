@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.model.forEvent.EventTypes;
 import ru.yandex.practicum.filmorate.model.forEvent.Operations;
 
-import java.sql.Timestamp;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
