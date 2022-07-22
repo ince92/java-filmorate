@@ -94,6 +94,14 @@ public class FilmDbStorage implements FilmStorage {
 
             film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
         }
+
+        directorStorage.deleteDirectorsByFilm(film.getId());
+        if (film.getDirectors() != null) {
+            for (Director director : film.getDirectors()) {
+                directorStorage.addDirectorToFilm(film.getId(), director.getId());
+            }
+            film.setDirectors(new HashSet<>(directorStorage.getFilmDirectors(film.getId())));
+        }
         return film;
     }
 
