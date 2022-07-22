@@ -194,14 +194,40 @@ public class FilmDbStorage implements FilmStorage {
         for (var key : searchKeys) {
             switch (key) {
                 case "director":
-                    builder.append("inner join FILM_DIRECTORS FD on FD.FILM_ID = F.FILM_ID ");
-                    builder.append("inner join DIRECTORS D on D.DIRECTOR_ID = FD.DIRECTOR_ID ");
-                    builder.append("where D.DIRECTOR_NAME like ? ");
-                    args.add("%" + query + "%");
+                    builder.append("left outer join FILM_DIRECTORS FD on FD.FILM_ID = F.FILM_ID ");
+                    builder.append("left outer join DIRECTORS D on D.DIRECTOR_ID = FD.DIRECTOR_ID ");
                     break;
                 case "title":
-                    builder.append("where F.FILM_NAME like ? ");
-                    args.add("%" + query + "%");
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
+            }
+        }
+
+        boolean haveWhere = false;
+        for (var key : searchKeys) {
+            switch (key) {
+                case "director":
+                    if (haveWhere) {
+                        builder.append("or");
+                    }
+                    else {
+                        builder.append("where");
+                    }
+                    builder.append(" lower(D.DIRECTOR_NAME) like ? ");
+                    args.add("%" + query.toLowerCase() + "%");
+                    haveWhere = true;
+                    break;
+                case "title":
+                    if (haveWhere) {
+                        builder.append("or");
+                    }
+                    else {
+                        builder.append("where");
+                    }
+                    builder.append(" lower(F.FILM_NAME) like ? ");
+                    args.add("%" + query.toLowerCase() + "%");
+                    haveWhere = true;
                     break;
                 default:
                     throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
