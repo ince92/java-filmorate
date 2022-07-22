@@ -86,10 +86,32 @@ public class FilmService {
         return filmStorage.findPopular(count);
     }
 
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        return filmStorage.findCommonFilms(userId, friendId);
+    }
+
     private void checkUser(long userId){
         userStorage.findUserById(userId).orElseThrow(() ->
                 new NotFoundException("Пользователь с таким id не найден!"));
 
     }
 
+    public void deleteFilm(long id) {
+        var removed = filmStorage.remove(id);
+        if (!removed) {
+            throw new NotFoundException("Фильм не найден");
+        }
+    }
+
+    public List<Film> findDirectorsFilms(long directorId, String sortBy) {
+         return filmStorage.findDirectorsFilms(directorId, sortBy);
+    }
+    
+    public List<Film> findFilms(String query, Set<String> searchKeys) {
+        return filmStorage.findFilms(query, searchKeys);
+    }
+    
+    public List<Film> getMostPopularFilms (long count, long genreId, long year) {
+         return filmStorage.getMostPopularFilms(count,genreId,year);
+    }
 }
