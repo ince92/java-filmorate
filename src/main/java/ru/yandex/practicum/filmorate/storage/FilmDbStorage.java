@@ -179,6 +179,43 @@ public class FilmDbStorage implements FilmStorage {
 
     }
 
+    @Override
+    public List<Film> findFilms(String query, Set<String> searchKeys) {
+        var builder = new StringBuilder();
+
+        var args = new ArrayList<String>();
+
+        builder.append(
+            "select F.FILM_ID, f.DESCRIPTION, f.DURATION, f.FILM_NAME, f.MPA, f.RELEASE_DATE "+
+            "from FILMS F " +
+            "left join LIKES l on F.FILM_ID = l.FILM_ID "
+        );
+
+        for (var key : searchKeys) {
+            switch (key) {
+                case "director":
+                    builder.append("inner join FILM_DIRECTORS FD on FD.FILM_ID = F.FILM_ID ");
+                    builder.append("inner join DIRECTORS D on D.DIRECTOR_ID = FD.DIRECTOR_ID ");
+                    builder.append("where D.DIRECTOR_NAME like ? ");
+                    args.add("%" + query + "%");
+                    break;
+                case "title":
+                    builder.append("where F.FILM_NAME like ? ");
+                    args.add("%" + query + "%");
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
+            }
+        }
+
+        builder.append(
+            "group by F.FILM_ID " +
+            "order by COUNT(distinct l.USER_ID) desc"
+        );
+
+        return jdbcTemplate.query(builder.toString(), (rs, rowNum) -> makeFilm(rs), args.toArray());
+    }
+
     public List<Film> findDirectorsFilms(long directorId, String sortBy) {
         String sqlSort = "";
         if(sortBy.equals("year")) {
