@@ -217,6 +217,69 @@ public class FilmDbStorage implements FilmStorage {
 
     }
 
+    @Override
+    public List<Film> findFilms(String query, Set<String> searchKeys) {
+        var builder = new StringBuilder();
+
+        var args = new ArrayList<String>();
+
+        builder.append(
+            "select F.FILM_ID, f.DESCRIPTION, f.DURATION, f.FILM_NAME, f.MPA, f.RELEASE_DATE "+
+            "from FILMS F " +
+            "left join LIKES l on F.FILM_ID = l.FILM_ID "
+        );
+
+        for (var key : searchKeys) {
+            switch (key) {
+                case "director":
+                    builder.append("left outer join FILM_DIRECTORS FD on FD.FILM_ID = F.FILM_ID ");
+                    builder.append("left outer join DIRECTORS D on D.DIRECTOR_ID = FD.DIRECTOR_ID ");
+                    break;
+                case "title":
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
+            }
+        }
+
+        boolean haveWhere = false;
+        for (var key : searchKeys) {
+            switch (key) {
+                case "director":
+                    if (haveWhere) {
+                        builder.append("or");
+                    }
+                    else {
+                        builder.append("where");
+                    }
+                    builder.append(" lower(D.DIRECTOR_NAME) like ? ");
+                    args.add("%" + query.toLowerCase() + "%");
+                    haveWhere = true;
+                    break;
+                case "title":
+                    if (haveWhere) {
+                        builder.append("or");
+                    }
+                    else {
+                        builder.append("where");
+                    }
+                    builder.append(" lower(F.FILM_NAME) like ? ");
+                    args.add("%" + query.toLowerCase() + "%");
+                    haveWhere = true;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
+            }
+        }
+
+        builder.append(
+            "group by F.FILM_ID " +
+            "order by COUNT(distinct l.USER_ID) desc"
+        );
+
+        return jdbcTemplate.query(builder.toString(), (rs, rowNum) -> makeFilm(rs), args.toArray());
+    }
+
     public List<Film> findDirectorsFilms(long directorId, String sortBy) {
         String sqlSort = "";
         if(sortBy.equals("year")) {

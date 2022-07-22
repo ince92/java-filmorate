@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface FilmStorage {
     Film create(Film film);
@@ -15,4 +16,6 @@ public interface FilmStorage {
     List<Film> getMostPopularFilms(long count, long genreId, long year);
     List<Film> findDirectorsFilms(long directorId, String sortBy);
     List<Film> findRecommendations(long userId);
+
+    List<Film> findFilms(String query, Set<String> searchKeys);
 }

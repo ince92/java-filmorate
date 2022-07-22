@@ -80,6 +80,12 @@ public class FilmController {
         directorService.findDirectorById(directorId);
         return filmService.findDirectorsFilms(directorId, sortBy);
     }
+
+    @GetMapping("/films/search")
+    public List<Film> searchFilms(@RequestParam("query") String query, @RequestParam("by") String searchBy) {
+        var searchKeys = Set.of(searchBy.split(","));
+        return filmService.findFilms(query, searchKeys);
+    }
 }
 
 
