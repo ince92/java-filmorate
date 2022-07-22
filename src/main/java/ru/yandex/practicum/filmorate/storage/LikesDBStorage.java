@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.forEvent.EventTypes;
 import ru.yandex.practicum.filmorate.model.forEvent.Operations;
+import ru.yandex.practicum.filmorate.storage.storageInterface.EventFeedsStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.LikesStorage;
 
 @Component
@@ -11,18 +12,18 @@ public class LikesDBStorage implements LikesStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final EventFeedsDbStorage eventFeedsDbStorage;
+    private final EventFeedsStorage eventFeedsStorage;
 
-    public LikesDBStorage(JdbcTemplate jdbcTemplate, EventFeedsDbStorage eventFeedsDbStorage){
+    public LikesDBStorage(JdbcTemplate jdbcTemplate, EventFeedsStorage eventFeedsStorage){
         this.jdbcTemplate = jdbcTemplate;
-        this.eventFeedsDbStorage = eventFeedsDbStorage;
+        this.eventFeedsStorage = eventFeedsStorage;
     }
 
     public void addLike(long id, long userId) {
         String sqlQuery = "insert into LIKES (FILM_ID, USER_ID) values (?, ?)";
 
         jdbcTemplate.update(sqlQuery,id,userId);
-        eventFeedsDbStorage.addEvent(userId, EventTypes.LIKE, Operations.ADD, id);
+        eventFeedsStorage.addEvent(userId, EventTypes.LIKE, Operations.ADD, id);
 
     }
 
@@ -30,6 +31,6 @@ public class LikesDBStorage implements LikesStorage {
         String sqlQuery = "delete from LIKES where FILM_ID= ? AND USER_ID= ?";
 
         jdbcTemplate.update(sqlQuery,id,userId);
-        eventFeedsDbStorage.addEvent(userId, EventTypes.LIKE, Operations.REMOVE, id);
+        eventFeedsStorage.addEvent(userId, EventTypes.LIKE, Operations.REMOVE, id);
     }
 }

@@ -22,6 +22,7 @@ public class EventFeedsDbStorage<T> implements EventFeedsStorage {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
     public void addEvent(long userId, EventTypes eventType, Operations operation, long entityId) {
         String sqlQuery = "insert into EVENT_FEEDS (TIMESTAMP, USER_ID, EVENT_TYPE, OPERATION, ENTITY_ID)" +
                 " values (?, ?, ?, ?, ?)";
@@ -40,6 +41,7 @@ public class EventFeedsDbStorage<T> implements EventFeedsStorage {
         }, keyHolder);
     }
 
+    @Override
     public List<Event> showUserHistory(long userId) {
         String sql = "select * from EVENT_FEEDS where USER_ID = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeEvent(rs),userId);

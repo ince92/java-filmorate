@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.forEvent.EventTypes;
 import ru.yandex.practicum.filmorate.model.forEvent.Operations;
+import ru.yandex.practicum.filmorate.storage.storageInterface.EventFeedsStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.FriendshipStorage;
 
 import java.util.List;
@@ -12,11 +13,11 @@ import java.util.List;
 public class FriendshipDBStorage implements FriendshipStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final EventFeedsDbStorage eventFeedsDbStorage;
+    private final EventFeedsStorage eventFeedsStorage;
 
-    public FriendshipDBStorage(JdbcTemplate jdbcTemplate, EventFeedsDbStorage eventFeedsDbStorage){
+    public FriendshipDBStorage(JdbcTemplate jdbcTemplate, EventFeedsStorage eventFeedsStorage){
         this.jdbcTemplate = jdbcTemplate;
-        this.eventFeedsDbStorage = eventFeedsDbStorage;
+        this.eventFeedsStorage = eventFeedsStorage;
     }
 
 
@@ -25,7 +26,7 @@ public class FriendshipDBStorage implements FriendshipStorage {
         String sqlQuery = "merge into FRIENDSHIPS (USER_ID, FRIEND_ID) values (?, ?)";
 
         jdbcTemplate.update(sqlQuery,userId,friendId);
-        eventFeedsDbStorage.addEvent(userId, EventTypes.FRIEND, Operations.ADD, friendId);
+        eventFeedsStorage.addEvent(userId, EventTypes.FRIEND, Operations.ADD, friendId);
 
         return true;
     }
@@ -35,7 +36,7 @@ public class FriendshipDBStorage implements FriendshipStorage {
         String sqlQuery = "delete from FRIENDSHIPS where USER_ID= ? and FRIEND_ID=?";
 
         jdbcTemplate.update(sqlQuery,userId,friendId);
-        eventFeedsDbStorage.addEvent(userId, EventTypes.FRIEND, Operations.REMOVE, friendId);
+        eventFeedsStorage.addEvent(userId, EventTypes.FRIEND, Operations.REMOVE, friendId);
 
         return true;
     }

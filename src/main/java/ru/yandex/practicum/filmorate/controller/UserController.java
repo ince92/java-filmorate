@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.EventFeedsDbStorage;
 
@@ -17,12 +18,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final EventFeedsDbStorage eventFeedsDbStorage;
+    private final EventService eventService;
 
     @Autowired
-    public UserController(UserService userService, EventFeedsDbStorage eventFeedsDbStorage) {
+    public UserController(UserService userService, EventService eventService) {
         this.userService = userService;
-        this.eventFeedsDbStorage = eventFeedsDbStorage;
+        this.eventService = eventService;
     }
 
     @GetMapping("/users")
@@ -86,6 +87,6 @@ public class UserController {
     @GetMapping("/users/{userId}/feed")
     public List<Event> showUserHistory(@PathVariable("userId") Integer userId) {
         log.debug("Запрошена история событий пользователя с ID: " + userId);
-        return eventFeedsDbStorage.showUserHistory(userId);
+        return eventService.showUserHistory(userId);
     }
 }
