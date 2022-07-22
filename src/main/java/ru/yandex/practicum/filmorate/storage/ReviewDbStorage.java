@@ -6,6 +6,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.forEvent.EventTypes;
+import ru.yandex.practicum.filmorate.model.forEvent.Operations;
+import ru.yandex.practicum.filmorate.storage.storageInterface.EventFeedsStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.ReviewStorage;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,9 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewDbStorage implements ReviewStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final EventFeedsStorage eventFeedsStorage;
 
-    public ReviewDbStorage(JdbcTemplate jdbcTemplate){
+    public ReviewDbStorage(JdbcTemplate jdbcTemplate, EventFeedsStorage eventFeedsStorage){
         this.jdbcTemplate = jdbcTemplate;
+        this.eventFeedsStorage = eventFeedsStorage;
     }
 
     public Review create(Review review) {
@@ -41,6 +46,8 @@ public class ReviewDbStorage implements ReviewStorage {
         }, keyHolder);
         review.setReviewId(keyHolder.getKey().longValue());
         log.info("Отзыв успешно создан, id - {}", review.getReviewId());
+        eventFeedsStorage.addEvent(findReviewById(review.getReviewId()).get().getUserId(), EventTypes.REVIEW, Operations.ADD
+                , keyHolder.getKey().longValue());
         return review;
     }
 
@@ -54,11 +61,15 @@ public class ReviewDbStorage implements ReviewStorage {
                 , review.getIsPositive()
                 ,review.getReviewId());
         log.info("Отзыв успешно обновлен, id - {}", review.getReviewId());
+        eventFeedsStorage.addEvent(findReviewById(review.getReviewId()).get().getUserId(), EventTypes.REVIEW
+                , Operations.UPDATE, findReviewById(review.getReviewId()).get().getReviewId());
         return review;
     }
     @Override
     public Long deleteReview(Long reviewId){
         String deleteReview = "DELETE FROM REVIEWS WHERE REVIEW_ID = ?";
+        eventFeedsStorage.addEvent(findReviewById(reviewId).get().getUserId(), EventTypes.REVIEW, Operations.REMOVE
+                , findReviewById(reviewId).get().getReviewId());
         jdbcTemplate.update(deleteReview, reviewId);
         log.info("Отзыв успешно удален, id - {}", reviewId);
         return reviewId;
