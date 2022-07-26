@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -12,26 +12,22 @@ import java.util.List;
 @RestController
 @Validated
 @Slf4j
+@RequiredArgsConstructor
 public class GenreController {
-        private final GenreService genreService;
+    private final GenreService genreService;
 
-        @Autowired
-        public GenreController(GenreService genreService) {
-            this.genreService = genreService;
-        }
-
-        @GetMapping("/genres")
-        public List<Genre> findAll() {
-            List<Genre> genres = genreService.findAll();
-            log.debug("Текущее количество жанров: {} ", genres.size());
-            return genres;
-        }
+    @GetMapping("/genres")
+    public List<Genre> findAll() {
+        List<Genre> genres = genreService.findAll();
+        log.debug("Текущее количество жанров: {} ", genres.size());
+        return genres;
+    }
 
 
-        @GetMapping("/genres/{genreId}")
-        public Genre findGenreById(@PathVariable("genreId") int genreId) {
-            return genreService.findGenreById(genreId);
-        }
+    @GetMapping("/genres/{genreId}")
+    public Genre findGenreById(@PathVariable("genreId") int genreId) {
+        return genreService.findGenreById(genreId);
+    }
 
 
 }

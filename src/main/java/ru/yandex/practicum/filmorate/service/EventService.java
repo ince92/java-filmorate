@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -9,16 +10,12 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EventService {
 
-    EventFeedsStorage eventFeedsStorage;
+    private final EventFeedsStorage eventFeedsStorage;
 
-
-    public EventService(EventFeedsStorage eventFeedsStorage) {
-        this.eventFeedsStorage = eventFeedsStorage;
-    }
-
-    public List<Event> showUserHistory (long userId) {
+    public List<Event> showUserHistory(long userId) {
         return eventFeedsStorage.showUserHistory(userId);
     }
 }

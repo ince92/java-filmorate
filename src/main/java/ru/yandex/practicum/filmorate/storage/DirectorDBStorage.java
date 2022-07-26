@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,13 +15,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class DirectorDBStorage implements DirectorStorage {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public DirectorDBStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Optional<Director> create(Director director) {
@@ -31,7 +29,6 @@ public class DirectorDBStorage implements DirectorStorage {
             stmt.setString(1, director.getName());
             return stmt;
         }, keyHolder);
-
         director.setId(keyHolder.getKey().longValue());
         return Optional.of(director);
     }
@@ -75,7 +72,7 @@ public class DirectorDBStorage implements DirectorStorage {
     @Override
     public void addDirectorToFilm(long filmId, long directorId) {
         String sqlQuery = "merge into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) values (?, ?)";
-        jdbcTemplate.update(sqlQuery,filmId,directorId);
+        jdbcTemplate.update(sqlQuery, filmId, directorId);
     }
 
     @Override
@@ -89,7 +86,7 @@ public class DirectorDBStorage implements DirectorStorage {
 
     public void deleteDirectorsByFilm(long filmId) {
         String sqlQuery = "delete from FILM_DIRECTORS where FILM_ID= ?";
-        jdbcTemplate.update(sqlQuery,filmId);
+        jdbcTemplate.update(sqlQuery, filmId);
 
     }
 }

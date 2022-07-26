@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.storageInterface.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.UserStorage;
@@ -15,17 +16,13 @@ import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final LikesStorage likesStorage;
-     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikesStorage likesStorage) {
-        this.userStorage = userStorage;
-        this.filmStorage = filmStorage;
-        this.likesStorage = likesStorage;
-     }
+    private final DirectorStorage directorStorage;
 
     public List<Film> findAll() {
         return filmStorage.findAll();
@@ -63,7 +60,6 @@ public class FilmService {
             log.info("Даты релиза фильма некорректна: {}", film.getReleaseDate());
             throw new ValidationException("Даты релиза фильма некорректна!");
         }
-
     }
 
     public Film findFilmById(long id) {
@@ -72,13 +68,13 @@ public class FilmService {
 
     public Film addLike(long id, long userId) {
         checkUser(userId);
-        likesStorage.addLike(id,userId);
+        likesStorage.addLike(id, userId);
         return findFilmById(id);
     }
 
     public Film deleteLike(long id, long userId) {
         checkUser(userId);
-        likesStorage.deleteLike(id,userId);
+        likesStorage.deleteLike(id, userId);
         return findFilmById(id);
     }
 
@@ -90,10 +86,9 @@ public class FilmService {
         return filmStorage.findCommonFilms(userId, friendId);
     }
 
-    private void checkUser(long userId){
+    private void checkUser(long userId) {
         userStorage.findUserById(userId).orElseThrow(() ->
                 new NotFoundException("Пользователь с таким id не найден!"));
-
     }
 
     public void deleteFilm(long id) {
@@ -104,14 +99,16 @@ public class FilmService {
     }
 
     public List<Film> findDirectorsFilms(long directorId, String sortBy) {
-         return filmStorage.findDirectorsFilms(directorId, sortBy);
+        directorStorage.findDirectorById(directorId).orElseThrow(() ->
+                new NotFoundException("Режиссёр с таким id не найден!"));
+        return filmStorage.findDirectorsFilms(directorId, sortBy);
     }
-    
+
     public List<Film> findFilms(String query, Set<String> searchKeys) {
         return filmStorage.findFilms(query, searchKeys);
     }
-    
-    public List<Film> getMostPopularFilms (long count, long genreId, long year) {
-         return filmStorage.getMostPopularFilms(count,genreId,year);
+
+    public List<Film> getMostPopularFilms(long count, long genreId, long year) {
+        return filmStorage.getMostPopularFilms(count, genreId, year);
     }
 }

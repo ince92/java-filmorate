@@ -28,7 +28,7 @@ public class DirectorController {
     }
 
     @PostMapping
-    public Director create(@Valid  @RequestBody Director director) {
+    public Director create(@Valid @RequestBody Director director) {
         Director newDirector = directorService.create(director);
         log.info("Добавлен режиссёр {} с id {}", director.getName(), director.getId());
         return newDirector;

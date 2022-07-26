@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
@@ -15,15 +14,9 @@ import java.util.*;
 @RestController
 @Validated
 @Slf4j
+@RequiredArgsConstructor
 public class FilmController {
     private final FilmService filmService;
-      private final DirectorService directorService;
-
-    @Autowired
-    public FilmController(FilmService filmService, DirectorService directorService) {
-        this.filmService = filmService;
-        this.directorService = directorService;
-    }
 
     @GetMapping("/films")
     public List<Film> findAll() {
@@ -68,7 +61,7 @@ public class FilmController {
 
     @GetMapping("/films/popular")
     public List<Film> getMostPopularFilms(@Positive
-              @RequestParam(name = "count", defaultValue = "10", required = false) long count
+                                          @RequestParam(name = "count", defaultValue = "10", required = false) long count
             , @RequestParam(name = "genreId", defaultValue = "0", required = false) long genreId
             , @RequestParam(name = "year", defaultValue = "0", required = false) long year) {
         return filmService.getMostPopularFilms(count, genreId, year);
@@ -83,7 +76,6 @@ public class FilmController {
     @GetMapping("/films/director/{directorId}")
     public List<Film> getDirectorsFilms(@PathVariable("directorId") long directorId,
                                         @RequestParam(value = "sortBy", required = false) String sortBy) {
-        directorService.findDirectorById(directorId);
         return filmService.findDirectorsFilms(directorId, sortBy);
     }
 

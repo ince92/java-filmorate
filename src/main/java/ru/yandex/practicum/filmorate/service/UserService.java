@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -16,18 +16,12 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserService {
+
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipStorage;
-
     private final FilmStorage filmStorage;
-
-    @Autowired
-    public UserService(UserStorage userStorage, FriendshipStorage friendshipStorage,FilmStorage filmStorage) {
-        this.userStorage = userStorage;
-        this.friendshipStorage = friendshipStorage;
-        this.filmStorage = filmStorage;
-    }
 
     public List<User> findAll() {
         return userStorage.findAll();
@@ -72,7 +66,6 @@ public class UserService {
             log.info("Некорректная дата рождения -{}", user.getBirthday());
             throw new ValidationException("дата рождения некорректна");
         }
-
     }
 
     public User findUserByID(long id) {
@@ -83,31 +76,30 @@ public class UserService {
     public boolean addFriend(long userId, long friendId) {
         findUserByID(userId);
         findUserByID(friendId);
-        friendshipStorage.addFriend(userId,friendId);
+        friendshipStorage.addFriend(userId, friendId);
         return true;
     }
 
     public boolean deleteFriend(long userId, long friendId) {
         findUserByID(userId);
         findUserByID(friendId);
-        friendshipStorage.deleteFriend(userId,friendId);
+        friendshipStorage.deleteFriend(userId, friendId);
         return true;
     }
 
     public List<User> findFriends(long userId) {
         findUserByID(userId);
         return friendshipStorage.findFriends(userId);
-
     }
 
     public List<User> findCommonFriends(long userId, long otherId) {
         findUserByID(userId);
         findUserByID(otherId);
-        return friendshipStorage.findCommonFriends(userId,otherId);
+        return friendshipStorage.findCommonFriends(userId, otherId);
     }
+
     public List<Film> findRecommendations(long userId) {
         findUserByID(userId);
         return filmStorage.findRecommendations(userId);
     }
-
 }

@@ -8,6 +8,7 @@ import javax.validation.constraints.*;
 @Data
 @AllArgsConstructor
 public class Review {
+
     private Long reviewId;
     @NotBlank
     private String content;

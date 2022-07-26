@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -9,14 +9,10 @@ import ru.yandex.practicum.filmorate.storage.storageInterface.DirectorStorage;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DirectorService {
 
     private final DirectorStorage directorStorage;
-
-    @Autowired
-    public DirectorService(DirectorStorage directorStorage) {
-        this.directorStorage = directorStorage;
-    }
 
     public Director create(Director director) {
         return directorStorage.create(director).get();
@@ -29,7 +25,7 @@ public class DirectorService {
 
     public Director findDirectorById(long id) {
         return directorStorage.findDirectorById(id).orElseThrow(() ->
-                new NotFoundException("Режиссёр с id" + id +" не найден!"));
+                new NotFoundException("Режиссёр с id" + id + " не найден!"));
     }
 
     public List<Director> findAll() {

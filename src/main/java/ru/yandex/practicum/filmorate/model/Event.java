@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.forEvent.Operations;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event {
+
     private long eventId;
     private long userId;
     private long entityId;

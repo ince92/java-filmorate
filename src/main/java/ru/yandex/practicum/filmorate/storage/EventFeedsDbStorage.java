@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,22 +15,17 @@ import java.time.Instant;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class EventFeedsDbStorage<T> implements EventFeedsStorage {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public EventFeedsDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public void addEvent(long userId, EventTypes eventType, Operations operation, long entityId) {
         String sqlQuery = "insert into EVENT_FEEDS (TIMESTAMP, USER_ID, EVENT_TYPE, OPERATION, ENTITY_ID)" +
                 " values (?, ?, ?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
         long date = Instant.now().toEpochMilli();
-
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"EVENT_ID"});
             stmt.setLong(1, date);
@@ -44,7 +40,7 @@ public class EventFeedsDbStorage<T> implements EventFeedsStorage {
     @Override
     public List<Event> showUserHistory(long userId) {
         String sql = "select * from EVENT_FEEDS where USER_ID = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeEvent(rs),userId);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeEvent(rs), userId);
     }
 
     public Event makeEvent(ResultSet rs) throws SQLException {
@@ -55,6 +51,6 @@ public class EventFeedsDbStorage<T> implements EventFeedsStorage {
                 EventTypes.valueOf(rs.getString("EVENT_TYPE")),
                 Operations.valueOf(rs.getString("OPERATION")),
                 rs.getLong("TIMESTAMP")
-                );
+        );
     }
 }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -10,31 +11,27 @@ import ru.yandex.practicum.filmorate.model.forEvent.EventTypes;
 import ru.yandex.practicum.filmorate.model.forEvent.Operations;
 import ru.yandex.practicum.filmorate.storage.storageInterface.EventFeedsStorage;
 import ru.yandex.practicum.filmorate.storage.storageInterface.ReviewStorage;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Primary
 @Slf4j
+@RequiredArgsConstructor
 public class ReviewDbStorage implements ReviewStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final EventFeedsStorage eventFeedsStorage;
 
-    public ReviewDbStorage(JdbcTemplate jdbcTemplate, EventFeedsStorage eventFeedsStorage){
-        this.jdbcTemplate = jdbcTemplate;
-        this.eventFeedsStorage = eventFeedsStorage;
-    }
-
     public Review create(Review review) {
         String sqlQuery = "insert into REVIEWS (CONTENT, IS_POSITIVE, USER_ID,FILM_ID,USEFUL) values (?, ?, ?, ?,?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"REVIEW_ID"});
             stmt.setString(1, review.getContent());
@@ -59,14 +56,15 @@ public class ReviewDbStorage implements ReviewStorage {
         jdbcTemplate.update(sqlQuery
                 , review.getContent()
                 , review.getIsPositive()
-                ,review.getReviewId());
+                , review.getReviewId());
         log.info("Отзыв успешно обновлен, id - {}", review.getReviewId());
         eventFeedsStorage.addEvent(findReviewById(review.getReviewId()).get().getUserId(), EventTypes.REVIEW
                 , Operations.UPDATE, findReviewById(review.getReviewId()).get().getReviewId());
         return review;
     }
+
     @Override
-    public Long deleteReview(Long reviewId){
+    public Long deleteReview(Long reviewId) {
         String deleteReview = "DELETE FROM REVIEWS WHERE REVIEW_ID = ?";
         eventFeedsStorage.addEvent(findReviewById(reviewId).get().getUserId(), EventTypes.REVIEW, Operations.REMOVE
                 , findReviewById(reviewId).get().getReviewId());
@@ -78,24 +76,24 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public List<Review> findAll(int count) {
         String sql = "select * from REVIEWS order by USEFUL desc limit ?";
-        return  jdbcTemplate.query(sql, (rs, rowNum) -> makeReview(rs),count);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeReview(rs), count);
     }
 
-    public Optional<Review> findReviewById(long id)  {
+    public Optional<Review> findReviewById(long id) {
         String sql = "select * from REVIEWS where REVIEW_ID = ?";
-
-        List<Review> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeReview(rs),id);
-        if (films.size()==0){
+        List<Review> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeReview(rs), id);
+        if (films.size() == 0) {
             return Optional.empty();
-        }else{
+        } else {
             return Optional.of(films.get(0));
         }
     }
-    public List<Review> findReviewByFilmId(long id,int count)  {
-        String sql = "select * from REVIEWS where FILM_ID = ?  order by USEFUL desc limit ?";
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeReview(rs),id,count);
+    public List<Review> findReviewByFilmId(long id, int count) {
+        String sql = "select * from REVIEWS where FILM_ID = ?  order by USEFUL desc limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeReview(rs), id, count);
     }
+
     @Override
     public void addLike(long reviewId, long userId) {
         String addLike = "insert into REVIEWS_LIKE (REVIEW_ID, USER_ID, LIKES) values (?, ?, ?)";
@@ -124,7 +122,6 @@ public class ReviewDbStorage implements ReviewStorage {
             jdbcTemplate.update(updateUsefulMinus, reviewId);
             log.info("Лайк удалеен");
         }
-
     }
 
     @Override
@@ -138,6 +135,7 @@ public class ReviewDbStorage implements ReviewStorage {
             log.info("Дизлайк удален");
         }
     }
+
     public Review makeReview(ResultSet rs) throws SQLException {
         long id = rs.getLong("REVIEW_ID");
         String content = rs.getString("CONTENT");
@@ -145,6 +143,6 @@ public class ReviewDbStorage implements ReviewStorage {
         long userId = rs.getLong("USER_ID");
         long filmId = rs.getLong("FILM_ID");
         int useful = rs.getInt("USEFUL");
-        return new Review(id,content,isPositive,userId,filmId,useful);
+        return new Review(id, content, isPositive, userId, filmId, useful);
     }
 }

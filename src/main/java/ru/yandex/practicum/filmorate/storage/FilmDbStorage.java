@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -23,28 +24,18 @@ import java.util.*;
 
 @Component
 @Primary
+@RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
-
     private final DirectorStorage directorStorage;
-
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage, MpaStorage mpaStorage,
-                         DirectorStorage directorStorage) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.genreStorage = genreStorage;
-        this.mpaStorage = mpaStorage;
-        this.directorStorage = directorStorage;
-    }
 
     public Film create(Film film) {
         String sqlQuery = "insert into FILMS (FILM_NAME, DESCRIPTION, RELEASE_DATE,DURATION,MPA) " +
                 "values (?, ?, ?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
             stmt.setString(1, film.getName());
@@ -54,7 +45,6 @@ public class FilmDbStorage implements FilmStorage {
             stmt.setInt(5, film.getMpa().getId());
             return stmt;
         }, keyHolder);
-
         film.setId(keyHolder.getKey().longValue());
         //установим жанры фильма
         if (film.getGenres() != null) {
@@ -63,7 +53,6 @@ public class FilmDbStorage implements FilmStorage {
             }
             film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
         }
-
         //добавим режиссёров
         if (film.getDirectors() != null) {
             for (Director director : film.getDirectors()) {
@@ -75,7 +64,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Film update(Film film) {
-
         String sqlQuery = "update FILMS set " +
                 "FILM_NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA = ? " +
                 "where FILM_ID = ?";
@@ -88,14 +76,11 @@ public class FilmDbStorage implements FilmStorage {
                 , film.getId());
         genreStorage.deleteGenresByFilm(film.getId());
         if (film.getGenres() != null) {
-
             for (Genre genre : film.getGenres()) {
                 genreStorage.addGenreToFilm(film.getId(), genre.getId());
             }
-
             film.setGenres(new HashSet<>(genreStorage.getGenreSetByFilm(film.getId())));//заполним из бд
         }
-
         directorStorage.deleteDirectorsByFilm(film.getId());
         if (film.getDirectors() != null) {
             for (Director director : film.getDirectors()) {
@@ -120,19 +105,15 @@ public class FilmDbStorage implements FilmStorage {
 
     public Optional<Film> findFilmById(long id) {
         String sql = "select * from FILMS where FILM_ID = ?";
-
         List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), id);
         if (films.size() == 0) {
             return Optional.empty();
         } else {
             return Optional.of(films.get(0));
         }
-
-
     }
 
     public Film makeFilm(ResultSet rs) throws SQLException {
-
         long id = rs.getLong("FILM_ID");
         String description = rs.getString("DESCRIPTION");
         String name = rs.getString("FILM_NAME");
@@ -155,7 +136,6 @@ public class FilmDbStorage implements FilmStorage {
                 ", f.DURATION as DURATION, f.FILM_NAME as FILM_NAME, f.MPA as MPA, f.RELEASE_DATE as RELEASE_DATE " +
                 "from FILMS F  left join LIKES l on F.FILM_ID = l.FILM_ID  group by F.FILM_ID " +
                 "order by  COUNT(distinct l.USER_ID) desc limit ?";
-
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), count);
     }
 
@@ -176,7 +156,6 @@ public class FilmDbStorage implements FilmStorage {
                     "group by F.FILM_ID " +
                     "order by  COUNT(distinct l.USER_ID) desc limit ?";
             return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), genreId, count);
-
         }
         if (genreId == 0) {
             sqlQuery = "select F.FILM_ID as FILM_ID,  f.DESCRIPTION as DESCRIPTION" +
@@ -196,7 +175,6 @@ public class FilmDbStorage implements FilmStorage {
                 "group by F.FILM_ID " +
                 "order by  COUNT(distinct l.USER_ID) desc limit ?";
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), genreId, year, count);
-
     }
 
     @Override
@@ -227,10 +205,7 @@ public class FilmDbStorage implements FilmStorage {
                 "from LIKES\n" +
                 "where USER_ID in (select USER_ID from result where MAX_COUNT = USER_COUNT)\n" +
                 "and FILM_ID not in(select FILM_ID from Likes where USER_ID = ?))";
-
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), userId, userId, userId);
-
-
     }
 
     @Override
@@ -248,23 +223,18 @@ public class FilmDbStorage implements FilmStorage {
                 "    select DIRECTOR_ID from DIRECTORS D " +
                 "    where D.DIRECTOR_ID = ?) " +
                 "group by F.FILM_ID " + sqlSort;
-
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> makeFilm(rs), directorId);
-
     }
 
     @Override
     public List<Film> findFilms(String query, Set<String> searchKeys) {
         var builder = new StringBuilder();
-
         var args = new ArrayList<String>();
-
         builder.append(
                 "select F.FILM_ID, f.DESCRIPTION, f.DURATION, f.FILM_NAME, f.MPA, f.RELEASE_DATE " +
                         "from FILMS F " +
                         "left join LIKES l on F.FILM_ID = l.FILM_ID "
         );
-
         for (var key : searchKeys) {
             switch (key) {
                 case "director":
@@ -277,7 +247,6 @@ public class FilmDbStorage implements FilmStorage {
                     throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
             }
         }
-
         boolean haveWhere = false;
         for (var key : searchKeys) {
             switch (key) {
@@ -305,12 +274,10 @@ public class FilmDbStorage implements FilmStorage {
                     throw new UnsupportedOperationException("Неподдерживаемый ключ поиска: '" + key + "'");
             }
         }
-
         builder.append(
                 "group by F.FILM_ID " +
                         "order by COUNT(distinct l.USER_ID) desc"
         );
-
         return jdbcTemplate.query(builder.toString(), (rs, rowNum) -> makeFilm(rs), args.toArray());
     }
 }
