@@ -1,0 +1,23 @@
+package ru.yandex.practicum.filmorate.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import javax.validation.constraints.*;
+
+@Data
+@AllArgsConstructor
+public class Review {
+
+    private Long reviewId;
+    @NotBlank
+    private String content;
+    @NotNull
+    @JsonProperty("isPositive")
+    private Boolean isPositive;
+    @NotNull
+    private Long userId;
+    @NotNull
+    private Long filmId;
+    private int useful;
+}
